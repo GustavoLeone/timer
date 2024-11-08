@@ -1,61 +1,76 @@
-let totalTimer, partialTimer;
-let totalSeconds = 0;
-let partialSeconds = 0;
+let totalStartTime, partialStartTime;
+let totalElapsedTime = 0;
+let partialElapsedTime = 0;
+let totalTimerInterval, partialTimerInterval;
 let isPartialPaused = false;
 
-// Timer Totale
+// Elementi DOM
 const totalTimerDisplay = document.getElementById('total-timer');
 const totalPlayBtn = document.getElementById('total-play');
-
-// Timer Parziale
 const partialTimerDisplay = document.getElementById('partial-timer');
 const partialPlayPauseBtn = document.getElementById('partial-play-pause');
 const partialResetBtn = document.getElementById('partial-reset');
 
-function formatTime(seconds) {
-    const hh = String(Math.floor(seconds / 3600)).padStart(2, '0');
-    const mm = String(Math.floor((seconds % 3600) / 60)).padStart(2, '0');
-    const ss = String(seconds % 60).padStart(2, '0');
+// Funzione per formattare il tempo in hh:mm:ss
+function formatTime(ms) {
+    const totalSeconds = Math.floor(ms / 1000);
+    const hh = String(Math.floor(totalSeconds / 3600)).padStart(2, '0');
+    const mm = String(Math.floor((totalSeconds % 3600) / 60)).padStart(2, '0');
+    const ss = String(totalSeconds % 60).padStart(2, '0');
     return `${hh}:${mm}:${ss}`;
 }
 
-// Funzione per aggiornare il timer totale
+// Funzione per aggiornare il display del timer totale
 function updateTotalTimer() {
-    totalSeconds++;
-    totalTimerDisplay.textContent = formatTime(totalSeconds);
+    const currentTime = Date.now();
+    totalElapsedTime = currentTime - totalStartTime;
+    totalTimerDisplay.textContent = formatTime(totalElapsedTime);
 }
 
-// Funzione per aggiornare il timer parziale
+// Funzione per aggiornare il display del timer parziale
 function updatePartialTimer() {
     if (!isPartialPaused) {
-        partialSeconds++;
-        partialTimerDisplay.textContent = formatTime(partialSeconds);
+        const currentTime = Date.now();
+        partialElapsedTime = currentTime - partialStartTime;
+        partialTimerDisplay.textContent = formatTime(partialElapsedTime);
     }
 }
 
 // Gestione del timer totale
 totalPlayBtn.addEventListener('click', () => {
-    if (!totalTimer) {
-        totalTimer = setInterval(updateTotalTimer, 1000);
-        partialTimer = setInterval(updatePartialTimer, 1000);
+    if (!totalTimerInterval) {
+        // Avvia i timer
+        totalStartTime = Date.now() - totalElapsedTime;
+        partialStartTime = Date.now() - partialElapsedTime;
+        totalTimerInterval = setInterval(updateTotalTimer, 1000);
+        partialTimerInterval = setInterval(updatePartialTimer, 1000);
         totalPlayBtn.textContent = 'In Pausa';
     } else {
-        clearInterval(totalTimer);
-        clearInterval(partialTimer);
-        totalTimer = null;
-        partialTimer = null;
+        // Ferma i timer
+        clearInterval(totalTimerInterval);
+        clearInterval(partialTimerInterval);
+        totalTimerInterval = null;
+        partialTimerInterval = null;
         totalPlayBtn.textContent = 'Play';
     }
 });
 
 // Gestione del timer parziale: Pausa/Play
 partialPlayPauseBtn.addEventListener('click', () => {
-    isPartialPaused = !isPartialPaused;
-    partialPlayPauseBtn.textContent = isPartialPaused ? 'Play' : 'Pausa';
+    if (!isPartialPaused) {
+        isPartialPaused = true;
+        partialElapsedTime = Date.now() - partialStartTime;
+        partialPlayPauseBtn.textContent = 'Play';
+    } else {
+        isPartialPaused = false;
+        partialStartTime = Date.now() - partialElapsedTime;
+        partialPlayPauseBtn.textContent = 'Pausa';
+    }
 });
 
 // Gestione del reset del timer parziale
 partialResetBtn.addEventListener('click', () => {
-    partialSeconds = 0;
+    partialElapsedTime = 0;
+    partialStartTime = Date.now();
     partialTimerDisplay.textContent = '00:00:00';
 });
