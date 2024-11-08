@@ -2,13 +2,17 @@ let totalStartTime, partialStartTime;
 let totalElapsedTime = 0;
 let partialElapsedTime = 0;
 let totalTimerInterval, partialTimerInterval;
-let isPartialPaused = false;
+let isPartialPaused = true;
+let isTotalPaused = true;
 
 let lastVisibilityChange = Date.now();
 
 // Elementi DOM
 const totalTimerDisplay = document.getElementById('total-timer');
 const partialTimerDisplay = document.getElementById('partial-timer');
+const totalPlayPauseBtn = document.getElementById('total-play-pause');
+const partialPlayPauseBtn = document.getElementById('partial-play-pause');
+const partialResetBtn = document.getElementById('partial-reset');
 
 // Funzione per formattare il tempo in hh:mm:ss
 function formatTime(ms) {
@@ -19,51 +23,91 @@ function formatTime(ms) {
     return `${hh}:${mm}:${ss}`;
 }
 
-// Funzione per aggiornare i timer
+// Funzione per aggiornare il timer totale
 function updateTotalTimer() {
-    const currentTime = Date.now();
-    totalElapsedTime = currentTime - totalStartTime;
-    totalTimerDisplay.textContent = formatTime(totalElapsedTime);
+    if (!isTotalPaused) {
+        totalElapsedTime = Date.now() - totalStartTime;
+        totalTimerDisplay.textContent = formatTime(totalElapsedTime);
+    }
 }
 
+// Funzione per aggiornare il timer parziale
 function updatePartialTimer() {
     if (!isPartialPaused) {
-        const currentTime = Date.now();
-        partialElapsedTime = currentTime - partialStartTime;
+        partialElapsedTime = Date.now() - partialStartTime;
         partialTimerDisplay.textContent = formatTime(partialElapsedTime);
     }
 }
 
-// Funzione per avviare i timer
-function startTimers() {
+// Funzione per avviare il timer totale
+function startTotalTimer() {
     totalStartTime = Date.now() - totalElapsedTime;
-    partialStartTime = Date.now() - partialElapsedTime;
-    clearInterval(totalTimerInterval);
-    clearInterval(partialTimerInterval);
     totalTimerInterval = setInterval(updateTotalTimer, 1000);
+}
+
+// Funzione per avviare il timer parziale
+function startPartialTimer() {
+    partialStartTime = Date.now() - partialElapsedTime;
     partialTimerInterval = setInterval(updatePartialTimer, 1000);
 }
+
+// Gestione del pulsante Play/Pausa per il timer totale
+totalPlayPauseBtn.addEventListener('click', () => {
+    if (isTotalPaused) {
+        isTotalPaused = false;
+        totalPlayPauseBtn.textContent = "Pausa Totale";
+        startTotalTimer();
+    } else {
+        isTotalPaused = true;
+        totalPlayPauseBtn.textContent = "Play Totale";
+        clearInterval(totalTimerInterval);
+    }
+});
+
+// Gestione del pulsante Play/Pausa per il timer parziale
+partialPlayPauseBtn.addEventListener('click', () => {
+    if (isPartialPaused) {
+        isPartialPaused = false;
+        partialPlayPauseBtn.textContent = "Pausa Parziale";
+        startPartialTimer();
+    } else {
+        isPartialPaused = true;
+        partialPlayPauseBtn.textContent = "Play Parziale";
+        clearInterval(partialTimerInterval);
+    }
+});
+
+// Gestione del pulsante Riavvia per il timer parziale
+partialResetBtn.addEventListener('click', () => {
+    partialElapsedTime = 0;
+    partialTimerDisplay.textContent = "00:00:00";
+    clearInterval(partialTimerInterval);
+    if (!isPartialPaused) {
+        startPartialTimer();
+    }
+});
 
 // Event Listener per il cambiamento di visibilità della pagina
 document.addEventListener('visibilitychange', () => {
     if (document.hidden) {
-        // Salva il tempo corrente quando la pagina diventa invisibile
         lastVisibilityChange = Date.now();
         clearInterval(totalTimerInterval);
         clearInterval(partialTimerInterval);
     } else {
-        // Calcola il tempo trascorso mentre la pagina era nascosta
         const now = Date.now();
         const diff = now - lastVisibilityChange;
 
-        // Aggiorna i tempi di inizio e riavvia i timer
-        totalStartTime += diff;
+        if (!isTotalPaused) {
+            totalStartTime += diff;
+            startTotalTimer();
+        }
         if (!isPartialPaused) {
             partialStartTime += diff;
+            startPartialTimer();
         }
-        startTimers(); // Riavvia i timer
     }
 });
 
-// Inizializza i timer
-startTimers();
+// Inizializza i display
+totalTimerDisplay.textContent = "00:00:00";
+partialTimerDisplay.textContent = "00:00:00";
