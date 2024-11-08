@@ -21,38 +21,49 @@ function formatTime(ms) {
 
 // Funzione per aggiornare i timer
 function updateTotalTimer() {
-    totalElapsedTime = Date.now() - totalStartTime;
+    const currentTime = Date.now();
+    totalElapsedTime = currentTime - totalStartTime;
     totalTimerDisplay.textContent = formatTime(totalElapsedTime);
 }
 
 function updatePartialTimer() {
     if (!isPartialPaused) {
-        partialElapsedTime = Date.now() - partialStartTime;
+        const currentTime = Date.now();
+        partialElapsedTime = currentTime - partialStartTime;
         partialTimerDisplay.textContent = formatTime(partialElapsedTime);
     }
 }
-
-// Event Listener per il cambiamento di visibilità della pagina
-document.addEventListener('visibilitychange', () => {
-    if (document.hidden) {
-        lastVisibilityChange = Date.now();
-    } else {
-        const now = Date.now();
-        const diff = now - lastVisibilityChange;
-        totalStartTime += diff;
-        if (!isPartialPaused) {
-            partialStartTime += diff;
-        }
-    }
-});
 
 // Funzione per avviare i timer
 function startTimers() {
     totalStartTime = Date.now() - totalElapsedTime;
     partialStartTime = Date.now() - partialElapsedTime;
+    clearInterval(totalTimerInterval);
+    clearInterval(partialTimerInterval);
     totalTimerInterval = setInterval(updateTotalTimer, 1000);
     partialTimerInterval = setInterval(updatePartialTimer, 1000);
 }
 
-// Avvia i timer
+// Event Listener per il cambiamento di visibilità della pagina
+document.addEventListener('visibilitychange', () => {
+    if (document.hidden) {
+        // Salva il tempo corrente quando la pagina diventa invisibile
+        lastVisibilityChange = Date.now();
+        clearInterval(totalTimerInterval);
+        clearInterval(partialTimerInterval);
+    } else {
+        // Calcola il tempo trascorso mentre la pagina era nascosta
+        const now = Date.now();
+        const diff = now - lastVisibilityChange;
+
+        // Aggiorna i tempi di inizio e riavvia i timer
+        totalStartTime += diff;
+        if (!isPartialPaused) {
+            partialStartTime += diff;
+        }
+        startTimers(); // Riavvia i timer
+    }
+});
+
+// Inizializza i timer
 startTimers();
