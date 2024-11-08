@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Timer Doppio</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Timer Totale -->
+        <div class="timer-section">
+            <h2>Timer Totale</h2>
+            <div id="total-timer">00:00:00</div>
+            <button id="total-play" class="btn">Play</button>
+        </div>
+
+        <hr>
+
+        <!-- Timer Parziale -->
+        <div class="timer-section">
+            <h2>Timer Parziale</h2>
+            <div id="partial-timer">00:00:00</div>
+            <div class="partial-controls">
+                <button id="partial-play-pause" class="btn">Pausa</button>
+                <button id="partial-reset" class="btn">Riavvia</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
